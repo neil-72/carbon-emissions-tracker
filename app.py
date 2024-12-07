@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_restful import Api
 from src.scraper import EmissionsScraper
 from src.data_processor import DataProcessor
@@ -8,6 +8,10 @@ api = Api(app)
 
 scraper = EmissionsScraper()
 processor = DataProcessor()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/api/emissions', methods=['GET'])
 def get_emissions():

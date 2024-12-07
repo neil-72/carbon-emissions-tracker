@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon Emissions Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8 text-center">Carbon Emissions Tracker</h1>
+        
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <form id="searchForm" class="mb-6">
+                <div class="mb-4">
+                    <label for="identifier" class="block text-gray-700 font-medium mb-2">Enter ISIN or Company Name</label>
+                    <input type="text" id="identifier" name="identifier" 
+                           class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+                           placeholder="e.g., US0378331005 or Apple Inc">
+                </div>
+                <button type="submit" 
+                        class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">
+                    Search
+                </button>
+            </form>
+            
+            <div id="results" class="hidden">
+                <h2 class="text-xl font-semibold mb-4">Results</h2>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-medium text-gray-700 mb-2">Company Information</h3>
+                        <p class="text-gray-600">Name: <span id="companyName"></span></p>
+                        <p class="text-gray-600">Identifier: <span id="companyId"></span></p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-medium text-gray-700 mb-2">Emissions Data</h3>
+                        <p class="text-gray-600">Scope 1: <span id="scope1"></span></p>
+                        <p class="text-gray-600">Scope 2: <span id="scope2"></span></p>
+                        <p class="text-gray-600">Reporting Year: <span id="reportingYear"></span></p>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h3 class="font-medium text-gray-700 mb-2">Metadata</h3>
+                        <p class="text-gray-600">Source: <span id="source"></span></p>
+                        <p class="text-gray-600">Units: <span id="units"></span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="error" class="hidden mt-4 p-4 bg-red-50 text-red-700 rounded-lg">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value;
+            const resultsDiv = document.getElementById('results');
+            const errorDiv = document.getElementById('error');
+            
+            try {
+                const response = await fetch(`/api/emissions?identifier=${encodeURIComponent(identifier)}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update the UI with the results
+                    document.getElementById('companyName').textContent = data.company_info.name;
+                    document.getElementById('companyId').textContent = data.company_info.identifier;
+                    document.getElementById('scope1').textContent = data.emissions_data.scope1;
+                    document.getElementById('scope2').textContent = data.emissions_data.scope2;
+                    document.getElementById('reportingYear').textContent = data.emissions_data.reporting_year;
+                    document.getElementById('source').textContent = data.metadata.source;
+                    document.getElementById('units').textContent = data.metadata.units;
+                    
+                    resultsDiv.classList.remove('hidden');
+                    errorDiv.classList.add('hidden');
+                } else {
+                    throw new Error(data.error || 'Failed to fetch data');
+                }
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+                resultsDiv.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
